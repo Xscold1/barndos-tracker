@@ -1,6 +1,106 @@
 # Development progress
 
-## Current ticket: T12 — Expanded Projects filters and pagination
+## Current ticket: T14a — Dedicated My Work page
+
+**Status:** Implemented; local checks passed. Planned and built on explicit request. Awaiting live development-Supabase/user verification before marking complete. T15 remains out of scope.
+
+### Implemented
+
+- Recorded T14a's plan/acceptance criteria in DEVELOPMENT_TICKETS.md. Replaced `/my-work` placeholder with a protected combined own-assignment view across all five streams, including Quotation.
+- Read-only, session-derived `list_my_work` RPC with full own-work overview, same-item search/workstream/status/priority/CT deadline filters and bounded 10/20/50-row UI pagination. No caller employee/date override, role restrictions or new write paths.
+- Default unfinished work on active projects, explicit all/Done/Not Needed choices, assigned undated work, client-review pending/OLA distinction, priority/queue display and server-calculated deadline states. Existing completion/revision/editing policies remain intact.
+- Reusable desktop table/mobile record list and filters; URL state/reset/clamping; project links and validated Back to My Work destinations. Existing project editing/worknotes remain available.
+- Debounced/cancellable reads and late-response protection; visible-minute/focus/visibility server refresh; loading/empty/initial error/retry plus last-verified counts/date and warning after background failure.
+
+### Verification
+
+- All fourteen migrations and fictional seeds applied to fresh isolated native PostgreSQL 18.6 with Auth stubs. All twelve rollback SQL suites passed, including prior schema/auth/CRUD/date/scheduling/activity/workflow/revision/search/dashboard checks.
+- New SQL suite: 13 fictional projects, 24 pending own assignments, all five streams, multiple own rows per project, independent teammate assignments, complete pagination/page sizes, literal search, combined filters, statuses, undated/client-review/archive/unassigned/empty cases, caller-ID rejection, access denial and unchanged business/audit snapshots.
+- Nine deterministic company-clock cases passed for Philippine midnight, Tennessee midnight in CDT/CST and both DST transitions. Clock override exists only inside the test rollback transaction.
+- 69 Node tests, lint and build passed. Existing nonblocking main-bundle warning: 629.00 kB.
+- My Work browser suite passed full counts/paging/filter combinations, Quotation and cross-role work, priority/queue, CT refresh/timezones, empty/error/missing-migration/retry, stale responses, project/back/refresh restoration, clamping, different employees and signed-out denial. 375/768/1440px checks passed; desktop/mobile screenshots inspected. Existing T14 Dashboard browser regression also passed. No runtime exceptions in the passing runs.
+- Browser fixtures used the actual auth provider/UI/service factories with fictional transports and blocked external requests. Live Supabase Auth/PostgREST/user acceptance remain pending.
+
+### Files changed for T14a
+
+- Added: `supabase/migrations/20261102001400_my_work.sql`, `supabase/tests/validate_my_work.sql`.
+- Added: `src/features/my-work/{myWorkQuery,createMyWorkService,myWorkService,useMyWorkData}.js` and `src/tests/my-work.test.js`.
+- Added: `src/pages/MyWorkPage.jsx`, `src/components/my-work/MyWorkFilters.jsx`, `MyWorkList.jsx`.
+- Updated: `src/App.jsx`, `src/app/navigation.js`, `src/pages/ProjectDetailPage.jsx`, DEVELOPMENT_TICKETS.md, root/database READMEs and this progress log. Prior T13/T14 work and user edits were preserved.
+
+### Remaining issues / scope
+
+- Apply migration 014 after 001–013 in development and follow the README T14a manual checks with real employee accounts. No configured remote or production database was accessed.
+- Existing `.gitignore` still excludes the entire `supabase/` directory; migrations/tests/database README exist locally but are omitted from normal commits. Ignore settings and environment files were preserved.
+- Current own-assignment pages exclude archived projects; use Projects to inspect archives or find unassigned/team work. Concurrent edits can move offset-page rows; reload obtains current totals/order.
+- No new dependencies, notifications, deployment or production changes. T15 has not started. Temporary browser/native fixtures remain ignored under `node_modules/.cache/`.
+
+## Previous ticket: T14 — Four-card expandable Dashboard UI
+
+**Status:** Implemented; local checks passed. Awaiting live development-Supabase/user verification before marking complete.
+
+### Implemented
+
+- Four BP/CP/KP/Takeoffs summary buttons with full pending/due-today/overdue totals from T13; one expanded list, switch/collapse behavior and native keyboard/expanded-state semantics.
+- Five-row server pagination, project/client detail links, Tennessee deadline/server OLA badges, assignee names and statuses. Desktop table, readable stacked records on smaller screens, and four/two/one summary columns.
+- PM/no-role defaults to collapsed All Team; each drafter's preferred card opens in My Work. Everyone can select any scope/workstream. Pending/due-today/overdue/Needs assignment filters retain authoritative card totals, with useful unassigned/empty guidance.
+- URL scope/card/filter and independent page per card; filter/scope reset, retained collapse, refresh/browser-Back restoration and server-clamped URL correction.
+- Cancellable reads with late-response protection; initial loading/error/retry without invented zeros; whole-response server refresh every visible minute/on focus/visibility, preserving last verified counts/date with warning/retry after background failure.
+- Reused existing cards/buttons/status/deadline formatting. No backend/schema, dependencies, environment or production changes in T14. The separate My Work placeholder was subsequently implemented in T14a above; Dashboard's My Work toggle remains available.
+
+### Verification
+
+- `npm.cmd test`: all 61 tests passed, including four new view-state tests for role defaults, URL validation, independent pages, collapse, scope/filter reset and page correction.
+- `npm.cmd run lint` and `npm.cmd run build` passed. Existing nonblocking main-bundle warning: 614.54 kB.
+- Browser fixtures passed PM/all four drafter defaults, four full totals, one-card expansion/switch/collapse, five-row independent paging, scope/filter combinations, unassigned/empty records, client-review exclusion, CT date/focus/minute refresh and failed-refresh recovery.
+- Browser fixtures passed initial error/retry, aborted/late response protection, project links/browser Back/reload, out-of-range clamping and native Enter/Space. 375/768/1440px layouts passed with no page overflow; desktop/mobile screenshots inspected. No runtime exceptions in the passing run.
+- Browser runs used the real auth provider/service factories/UI with fictional transport doubles and blocked external requests. Live Supabase Auth/PostgREST and user acceptance remain pending.
+
+### Files changed for T14
+
+- Added: `src/components/dashboard/DashboardSummaryCard.jsx`, `DashboardWorkList.jsx`.
+- Added: `src/features/dashboard/dashboardView.js`, `useDashboardData.js`, `src/tests/dashboard-view.test.js`.
+- Updated: `src/pages/DashboardPage.jsx`, root README and this progress log. T13 service/migration files were preserved. Browser fixtures/screenshots remain ignored under `node_modules/.cache/`.
+
+### Remaining issues / scope
+
+- Development Supabase must include migration 013. Follow the README T14 manual checks with real development employee accounts before acceptance.
+- Existing `.gitignore` still ignores `supabase/`, including T13/prior migrations and SQL tests. These locally present files will be omitted from a normal Git commit; ignore settings were preserved.
+- Offset pages may move when teammates edit data; Reload refreshes ordering/totals. Background warnings identify the last verified response rather than guessing company time.
+- T15 has not started. No deployment or remote/production data changes.
+
+## Previous ticket: T13 — Dashboard summary endpoint/service
+
+**Status:** Implemented; local checks passed. Awaiting live development-Supabase/user verification before marking complete.
+
+### Implemented
+
+- Read-only, employee-only `dashboard_summary` RPC returns all four BP/CP/Kitchen/Takeoffs totals and an optional five-row list from one SQL snapshot. Full totals remain independent of pagination/list filter; no PostgREST row-cap aggregation loss.
+- All Team and session-derived My Work respect each work item's own assignee. Pending includes client-review/unassigned/undated items; Done, Not Needed, Quotation and archived projects are excluded. Existing Tennessee company-date/OLA helpers exclude client review from drafting due-today/overdue.
+- Assigned names, project/client, CT date, relevant status, priority/queue and server deadline states; nearest-date ordering, deterministic ties, empty/clamped pages, and pending/due-today/overdue/needs-assignment list filters.
+- Reusable JavaScript service with explicit argument allowlist, cancellation, response validation and safe errors. No caller-supplied employee/date, browser-clock arithmetic, write grants or role restrictions. Dashboard UI remains the T14 placeholder.
+
+### Verification
+
+- All thirteen migrations and fictional seeds applied to a fresh isolated native PostgreSQL 18.6 database with Auth stubs. All eleven rollback SQL suites passed, including existing schema/auth/CRUD/date/scheduling/activity/workflow/revision/search checks.
+- New dashboard suite: 14 rollback fixtures, exact full counts, three pages without duplicates/loss, same-project independent assignees, internal/client review exclusions, names, unassigned/undated work, archive/closed filters, empty/clamped pages, access denial and unchanged business/audit snapshots.
+- Nine deterministic dashboard clock cases passed for Philippine midnight, Tennessee midnight in CDT/CST and both DST transitions. A transaction-only test clock replacement and all fixtures roll back; production accepts no clock override.
+- `npm.cmd test`: 57 passed. Lint/build passed. Existing nonblocking main bundle warning: 600.28 kB. This ticket changes the data layer only; live Auth/PostgREST and UI acceptance remain pending.
+
+### Files changed for T13
+
+- Added: `supabase/migrations/20261102001300_dashboard_summary.sql`, `supabase/tests/validate_dashboard.sql`.
+- Added: `src/features/dashboard/createDashboardService.js`, `dashboardService.js`, `src/tests/dashboard.test.js`.
+- Updated: root/database READMEs and this log, including API contract and authenticated development-browser test steps.
+
+### Remaining issues / scope
+
+- Apply pending migrations through 013 in development and verify real session/RPC responses using the README steps. No configured remote or production database was accessed.
+- Dashboard cards, expansion, role defaults and pagination controls were subsequently requested in T14 and are recorded above. Concurrent edits may move rows between offset-page reads.
+- Existing `.gitignore` ignores the whole `supabase` directory, including prior/new migrations, SQL tests and the database README. These files exist locally but will be omitted from a normal Git commit; ignore settings were preserved.
+- No dependencies or environment values changed. Temporary native test files remain ignored under `node_modules/.cache/`.
+
+## Previous ticket: T12 — Expanded Projects filters and pagination
 
 **Status:** Implemented; local checks passed. Explicitly requested after checking T11. Awaiting live development-Supabase/user verification before marking complete.
 
@@ -30,7 +130,7 @@
 
 - Apply pending migrations through 012 in development and follow README T11/T12 checks. Live RPC response shapes, permissions and persistence remain to be verified; no environment-configured remote writes occurred.
 - Offset pages reflect current data; concurrent edits can change ordering between reads. Reload refreshes totals and ordering.
-- Environment files, user edits and dependencies were preserved; production data was untouched. T13 has not started.
+- Environment files, user edits and dependencies were preserved; production data was untouched. T13 was subsequently requested and is recorded above.
 
 ## Previous ticket: T11 — Independent revisions and BP impact review
 

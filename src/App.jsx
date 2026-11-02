@@ -1,11 +1,11 @@
 ﻿import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import AppShell from '@/app/AppShell'
 import PlaceholderPage from '@/pages/PlaceholderPage'
-import { navigation } from '@/app/navigation'
 import ProjectsPage from '@/pages/ProjectsPage'
 import ProjectDetailPage from '@/pages/ProjectDetailPage'
 import LoginPage from '@/pages/LoginPage'
 import DashboardPage from '@/pages/DashboardPage'
+import MyWorkPage from '@/pages/MyWorkPage'
 import AuthProvider from '@/features/auth/AuthProvider'
 import RequireEmployee from '@/features/auth/RequireEmployee'
 import { useAuth } from '@/features/auth/useAuth'
@@ -26,20 +26,7 @@ export function AppRoutes() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
-          {navigation.filter(({ path }) => path === '/my-work').map(({ path, label, description, placeholder, icon }) => (
-            <Route
-              key={path}
-              path={path}
-              element={
-                <PlaceholderPage
-                  title={label}
-                  description={description}
-                  placeholder={placeholder}
-                  icon={icon}
-                />
-              }
-            />
-          ))}
+          <Route path="/my-work" element={<MyWorkPage />} />
           <Route
             path="*"
             element={

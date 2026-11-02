@@ -13,10 +13,12 @@ import CompanyDateStatus from '@/components/projects/CompanyDateStatus'
 import ActivityTimeline from '@/components/projects/ActivityTimeline'
 import ProjectWorkflowSummary from '@/components/projects/ProjectWorkflowSummary'
 import { useRevisionData } from '@/features/revisions/useRevisionData'
+import { myWorkReturnPath } from '@/features/my-work/myWorkQuery'
 
 export default function ProjectDetailPage() {
   const { projectId } = useParams()
-  const { search } = useLocation()
+  const { search, state } = useLocation()
+  const myWorkReturn = myWorkReturnPath(state?.myWorkReturn)
   const { data: project, loading, error, reload, companyToday, clockError, refreshCompanyDate } = useProjectData(projectId)
   const [dialog, setDialog] = useState(null)
   const [notice, setNotice] = useState(null)
@@ -33,13 +35,13 @@ export default function ProjectDetailPage() {
   return (
     <section aria-label="Project detail">
       <Button asChild variant="ghost" className="mb-5 -ml-3">
-        <Link to={`/projects${search}`}><ArrowLeft className="size-4" aria-hidden="true" />Back to Projects</Link>
+        <Link to={myWorkReturn ?? `/projects${search}`}><ArrowLeft className="size-4" aria-hidden="true" />{myWorkReturn ? 'Back to My Work' : 'Back to Projects'}</Link>
       </Button>
       <ProjectFeedback notice={notice} onDismiss={() => setNotice(null)} />
       <CompanyDateStatus companyToday={companyToday} error={clockError} onRetry={refreshCompanyDate} />
       {loading ? <ProjectState loading title="Loading project…">Preparing the project’s workstreams.</ProjectState>
         : error ? <ProjectState error title="Unable to load project">{error}<div className="mt-4"><Button variant="outline" onClick={reload}>Try again</Button></div></ProjectState>
-          : !project ? <ProjectState title="Project not found">This project is unavailable. Use Back to Projects to choose another.</ProjectState>
+          : !project ? <ProjectState title="Project not found">This project is unavailable. Use the back link to choose another.</ProjectState>
             : (
               <>
                 <div className="mt-4 mb-2 flex flex-wrap items-center justify-between gap-3">

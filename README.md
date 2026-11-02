@@ -13,9 +13,9 @@ npm run dev
 
 Open the Local URL printed by Vite. On Windows PowerShell, use `npm.cmd` if execution policy blocks `npm.ps1`.
 
-## Current prototype (T01–T12)
+## Current prototype (T01–T14a)
 
-`/login` provides Supabase email/password sign-in. Dashboard, My Work, Projects, project details, and unknown-route recovery require a session plus an active employee profile. Projects reads Supabase records and supports creation, metadata edits, archive/restore, independent workstream editing and assignments. Roles select the initial dashboard view and do not restrict editing.
+`/login` provides Supabase email/password sign-in. Dashboard, My Work, Projects, project details, and unknown-route recovery require a session plus an active employee profile. The Dashboard shows four expandable workstream summaries backed by the T13 service. My Work lists the employee's assignments across all five workstreams, including Quotation, with filters, priorities and Tennessee deadlines. Projects supports creation, metadata edits, archive/restore, independent workstream editing and assignments. Roles select the initial dashboard view and do not restrict editing.
 
 Desktop navigation is a sidebar. Below 768px, use the menu button to expand navigation above the page. Escape closes expanded navigation and returns focus to the menu button.
 
@@ -187,7 +187,7 @@ Apply migration `20261102000500_project_operations.sql` and sign in as a provisi
 5. Search/filter, open a row and use **Back to Projects**; filters should remain. Test an unmatched search, `/projects/missing`, and a failed read/save with recovery using Reload/Try again.
 6. At 375px width, check navigation, filters, table scrolling, forms and detail panels. Tab through a modal; Escape closes it while idle. Archive initially focuses Cancel.
 
-`npm test` runs dependency-free auth, project, workstream, deadline, scheduling, activity and workflow tests. SQL checks cover atomic rollback, duplicates, archive preservation, Tennessee dates, scheduling warnings, audited review cycles, independent workstreams/notes and persistence across new connections. The opt-in local concurrency script checks competing RPC/table writes. Browser fixtures exercise UI flows through actual service factories with transport doubles. Live Auth/PostgREST verification still requires your development Supabase stack/accounts; see the database README.
+`npm test` runs dependency-free auth, project, workstream, deadline, scheduling, activity, workflow, revision, search and dashboard-service tests. SQL checks cover atomic rollback, duplicates, archive preservation, Tennessee dates, scheduling warnings, audited review cycles, independent workstreams/notes, dashboard queries and persistence across new connections. The opt-in local concurrency script checks competing RPC/table writes. Browser fixtures exercise UI flows through actual service factories with transport doubles. Live Auth/PostgREST verification still requires your development Supabase stack/accounts; see the database README.
 
 `npm run preview` serves the production build locally. Future production hosting must rewrite browser routes to `index.html`; hosting is outside the current tickets.
 
@@ -201,6 +201,70 @@ Setup references: [Tailwind with Vite](https://tailwindcss.com/docs/installation
 
 Versioned migrations, fictional SQL seeds, and rollback-only schema checks now live in `supabase/`. See [supabase/README.md](supabase/README.md) for the seven-table schema, local setup, constraints, security defaults, and validation commands.
 
-The twelve migrations and seeds have been exercised on an isolated native PostgreSQL cluster with Auth stubs. Shared access, CRUD, CT dates, scheduling, activity, workflows, issued revisions/reviews and server search were checked locally. Real Supabase Auth/PostgREST remain to be verified with your development stack; transport fixtures were used for browser QA. No production data was changed.
+The fourteen migrations and seeds have been exercised on an isolated native PostgreSQL cluster with Auth stubs. Shared access, CRUD, CT dates, scheduling, activity, workflows, issued revisions/reviews, server search, dashboard and personal-assignment queries were checked locally. Real Supabase Auth/PostgREST remain to be verified with your development stack; transport fixtures were used for UI checks. No production data was changed.
 
 Read `AGENTS.md` and the three planning documents in `docs/` before implementing the next ticket. Ticket status and checks are recorded in [docs/PROGRESS.md](docs/PROGRESS.md).
+
+## T13 dashboard data service
+
+Apply `supabase/migrations/20261102001300_dashboard_summary.sql` after migrations 001–012 in your development database. The read-only `dashboard_summary` RPC and `src/features/dashboard/dashboardService.js` provide all four BP/CP/Kitchen/Takeoffs card totals plus an optional five-row workstream list. T14 connects these results to the Dashboard UI described below.
+
+Pending includes unfinished work, including unassigned items and For Client Review. Due-today/overdue counts use the database's Tennessee date and existing drafting rules; For Client Review contributes to neither. Done, Not Needed, Quotation and archived projects are excluded. All Team covers every assignee and unassigned work. My Work uses the session's employee ID at the database, independently for each workstream. Lists include project/client, assigned name, CT deadline, status and server-calculated deadline state. They sort oldest deadline first, then queue/project/ID; undated work is last.
+
+To inspect the data service directly, sign in to the local Vite app with a development employee, then run this in browser DevTools:
+
+```js
+const { dashboardService } = await import('/src/features/dashboard/dashboardService.js')
+const team = await dashboardService.getDashboard({ scope: 'team', workstream: 'bp' })
+console.log(team.company_today, team.cards, team.list)
+await dashboardService.getDashboard({ scope: 'mine', workstream: 'kitchen' })
+await dashboardService.getDashboard({ scope: 'team', workstream: 'cp', filter: 'unassigned' })
+```
+
+With more than five unfinished records in one workstream, request `page: 2`: list rows should change while all card counts and `list.total` stay the same. Try `filter: 'due_today'` and `'overdue'`; a client-review item must remain pending without entering either drafting list. Verify different assignees on the same project appear only in their own My Work results. Omitting `workstream` returns all four counts and `list: null`; an empty list has total 0, page 1 and page_count 1. Invalid filters fail, and failed reads never turn into invented zero counts.
+
+Run `npm.cmd test`, `npm.cmd run lint`, `npm.cmd run build` and the rollback-only `supabase/tests/validate_dashboard.sql` on a disposable seeded local database (see the database README). All thirteen migrations/seeds, eleven SQL suites and 57 Node tests passed locally. Live Supabase Auth/PostgREST and user acceptance remain pending; the existing 600.28 kB bundle warning remains.
+
+## T14 expandable Dashboard
+
+Open `/dashboard` after signing in. Four cards show BP, CP, KP and Takeoffs pending/due-today/overdue totals. Selecting a card opens its five-row list; selecting another replaces it; selecting the open card collapses it. The list shows project/client links, Tennessee deadlines and server-provided indicators, assigned names and workstream status. Desktop uses a compact table; narrower screens use stacked records. Cards wrap from four columns to two, then one on phones.
+
+Admin/PM (or an employee with no role) starts in All Team with every list collapsed. A drafter starts in My Work with their preferred role's card expanded. Every employee can switch to All Team and any workstream. The list's Show filter offers All pending, Due today (CT), Overdue (CT) and Needs assignment; it never changes the card totals. Unassigned work is visible in All Team, with a helpful empty state in My Work.
+
+Scope, selected/collapsed card, list filter and each card's page are retained in the URL. A scope/filter change resets all pages. Switching cards preserves independent pages; refresh and browser Back from a project restore the view. The server clamps pages after data changes, and the URL follows the returned page. Counts never come from the five visible rows.
+
+The page refreshes the entire server snapshot every 60 seconds while visible and on window focus/tab visibility. All company-date/deadline classification remains server-controlled. A failed background refresh keeps the last verified response and shows a warning/retry; a failed initial read shows an error instead of invented zero counts. Changing scope/card/page cancels the previous request and ignores late results. Explicit Reload dashboard requests a fresh read.
+
+Manual T14 checks with fictional development records and migration 013 applied:
+
+1. Run `npm.cmd run dev`, sign in, and open `/dashboard` without query parameters. Verify PM/no-role defaults and each drafter's preferred card/My Work default. Explicit URL choices override defaults.
+2. Open BP, switch to KP, then select KP again. Only one list should appear, and the second KP selection should collapse it. Use Tab, Enter and Space to operate cards and scope controls.
+3. With more than five unfinished records in a workstream, use Next/Previous page. Verify five rows at most and unchanged full totals. Change another card's page, switch back, refresh, open a project link and use browser Back: both cards should retain their own pages.
+4. Switch All Team/My Work and try every Show filter. Confirm independent assignees on the same project, visible unassigned/no-deadline records in All Team, and the explanatory empty My Work/Needs assignment state. Scope/filter changes should return to page one.
+5. Put a fictional past-due work item in For Client Review. It stays pending/Awaiting client while drafting due-today/overdue counts exclude it. Confirm the company-date label and indicators stay the same in Asia/Manila and America/Chicago browser timezones. Focus the window or wait for the visible-page refresh to reload server counts.
+6. Simulate a failed dashboard request, then restore the connection and retry. Confirm foreground errors hide unverified totals, background errors keep the last verified counts/date with a warning, and quick card/scope changes never display a late response from another view.
+7. Check 375px, tablet and desktop widths: one/two/four summary columns, readable records, visible pagination and no page-level horizontal overflow. An empty dataset should show four genuine zero totals and useful list guidance.
+
+T14 verification passed: 61 Node tests, lint/build, and isolated browser fixtures covering defaults, card state, full totals, five-row paging, filters, errors/retries, CT refresh, late responses, detail/Back/reload, page clamping, keyboard and 375/768/1440px layouts. Desktop/mobile screenshots were inspected. These transport fixtures do not establish a real Supabase session or verify PostgREST; repeat the manual checks with development accounts. The existing nonblocking bundle-size warning remains (614.54 kB main bundle). No new migration, dependency or environment setting is needed for T14.
+
+## T14a dedicated My Work
+
+Apply `supabase/migrations/20261102001400_my_work.sql` after migrations 001–013 in development, then open **My Work** in the sidebar or `/my-work`. This replaces the separate placeholder with one combined list of your assignments across Quotation, CP, BP, Kitchen and Takeoffs. The read-only RPC derives the employee from the authenticated session; roles and URL employee/scope values cannot change whose assignments are returned. Shared editing through Projects remains available to every employee.
+
+The default shows unfinished assignments on non-archived projects. Search by client/project number and combine workstream, exact/all/unfinished status, priority and Tennessee deadline filters. Due today/Overdue/Upcoming include active drafting only; For Client Review stays pending/Awaiting client. No deadline includes assigned undated records. Done and Not Needed can be found with explicit status choices. Unassigned work belongs in Projects or the Dashboard's All Team view.
+
+The overview covers all your unfinished assignments before list filters. The list's full matching total and 10/20/50-row pages come from the server. Items sort by due date ascending, queue position, project number and unique item ID; undated work is last. Search/filter/page/size are in the URL. Project links carry a validated internal **Back to My Work** destination, preserving the view through detail editing, browser Back and refresh.
+
+Reads debounce 250 ms and cancel/ignore superseded requests. While visible, the page refreshes the full server snapshot every minute and on focus/tab visibility. Foreground failures show an error/retry; background failures retain the last verified counts/date with a warning/retry. Counts and deadline states never use browser-local dates or just one fetched page.
+
+Manual T14a checks:
+
+1. Run `npm.cmd run dev`, sign in as an active development employee and open `/my-work`. Verify your name and only your assigned items. Assign Quotation/CP/BP/Kitchen/Takeoffs to the same employee on fictional projects: all five types should appear regardless of role. Sign in as another employee to verify their different assignments.
+2. Use more than ten assignments, change page and page size, and search for a record beyond page one. Full matching totals and overview must remain accurate. Combine stream/status/priority/deadline filters, clear them, and confirm filter changes reset pagination. Test an empty search and assigned work without deadlines.
+3. Compare a past-due drafting item with For Client Review: only drafting is overdue. Check Due today, Upcoming, No deadline, Done and Not Needed views. Archived and unassigned items should be absent. Changing browser timezone between Asia/Manila and America/Chicago must not change classification.
+4. Open a project, edit through the existing version-checked controls, then use Back to My Work. Confirm filters/page restore and the updated assignment is fetched. Repeat with browser Back and refresh.
+5. Check failed reads/retry, missing migration feedback, failed background refresh/retry and quick searches/card navigation. Test 375px, tablet and desktop layouts; table columns become readable stacked records on narrower screens.
+
+Verification: all fourteen migrations/seeds and twelve rollback SQL suites passed on isolated PostgreSQL 18.6 with Auth stubs. `npm.cmd test` passed 69 tests; lint/build passed. My Work and existing Dashboard browser suites passed, with desktop/mobile visual inspection and no runtime exceptions. Live Supabase Auth/PostgREST and user acceptance remain pending. The existing bundle warning remains (629.00 kB main bundle).
+
+The existing `.gitignore` ignores `supabase/`, including migrations and SQL tests; those locally present files are omitted from normal commits. No ignore settings, credentials, production data or packages were changed for T14a.

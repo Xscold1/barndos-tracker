@@ -19,6 +19,5 @@ export const navigation = [
     label: 'My Work',
     icon: ClipboardList,
     description: 'Your assignments, priorities, and upcoming deadlines.',
-    placeholder: 'Personal assignments will appear here after project data is connected.',
   },
 ]

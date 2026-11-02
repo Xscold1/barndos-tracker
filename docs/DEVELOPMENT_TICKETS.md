@@ -271,6 +271,23 @@ Use `row_version` increments or equivalent conditional updates for stale form su
 
 > Implement T14 only. Connect four summary cards (BP, CP, KP, Takeoffs) to the dashboard data service. Show counts and expand only one five-row paginated mini-table at a time with client/project, Tennessee due date, assignee and status. Support All Team/My Work, role-specific default selection, loading/empty states, responsive layout and project links.
 
+### T14a — Dedicated My Work page
+
+**Build:** replace the `/my-work` placeholder with the signed-in employee's combined assignments across Quotation/CP/BP/Kitchen/Takeoffs. Use a read-only, RLS-respecting RPC that derives the employee from `auth.uid()`, reuses the Tennessee date/OLA helpers and paginates work items rather than projects. Default to unfinished work on active projects; allow exact status/all-status views. Show project/client, workstream, status, Tennessee deadline, priority and queue position. Open project details for existing editing workflows.
+
+**Plan:**
+
+1. Add migration 014 with a combined own-assignment query, full filtered totals, all-own-work overview counts, stable nearest-deadline/nulls-last ordering and bounded pages.
+2. Add a validated JavaScript service, cancellable/debounced reads and visible-minute/focus refresh. Keep date/deadline states authoritative at the server; preserve last verified data with a warning if background refresh fails.
+3. Build reusable responsive filters/list components and the protected My Work route. Preserve search/filter/page state in the URL and provide Back to My Work from project details.
+4. Test different employees and mixed workstreams, Quotation inclusion, same-project independent assignees, full counts/pagination, client-review OLA, archived exclusion, access denial, errors/retries, mobile and navigation. Run lint/build and update the progress log.
+
+**Accept when:** employees see their own work regardless of dashboard role; other employees' and unassigned items are absent; counts cover the full dataset; search/status/workstream/priority/deadline filters combine correctly; assigned undated work stays visible; client review is pending without drafting overdue; rows open editable project details and return to the saved My Work view. No new write paths, permissions, dependencies or production data changes.
+
+**Codex prompt:**
+
+> Implement T14a only. Replace the separate My Work placeholder with a paginated list of the authenticated employee's assignments across all five workstreams. Add a read-only Supabase RPC as needed, derive identity from the session, and reuse America/Chicago deadline rules. Include search, workstream/status/priority/deadline filters, accurate totals, priorities/queue, project links with return navigation, loading/empty/error/retry states and responsive design. Test the query and UI, run lint/build, and stop before T15.
+
 ### T15 — Concurrency and error-hardening
 
 **Build:** optimistic version checking on important edits, consistent validation/error messages, confirmation dialogs, empty/loading/error states; audit correctness.
