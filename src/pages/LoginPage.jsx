@@ -12,6 +12,7 @@ export default function LoginPage() {
   const location = useLocation()
   const [busy, setBusy] = useState(false)
   const [formError, setFormError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   if (auth.status === 'ready') return <Navigate to={postLoginPath(location.state?.from, auth.roles)} replace />
 
   async function submit(event) {
@@ -58,7 +59,12 @@ export default function LoginPage() {
                   </div>
                   <div>
                     <label htmlFor="login-password" className="text-sm font-medium">Password</label>
-                    <input id="login-password" name="password" type="password" autoComplete="current-password" required className={inputClass} disabled={!auth.configured || busy} />
+                    <div className="relative">
+                      <input id="login-password" name="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" required className={`${inputClass} pr-20`} disabled={!auth.configured || busy} />
+                      <button type="button" aria-controls="login-password" aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} onClick={() => setShowPassword(value => !value)} disabled={!auth.configured || busy} className="absolute inset-y-0 right-1 mt-1.5 rounded px-3 text-sm font-medium text-primary focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50">
+                        {showPassword ? 'Hide' : 'Show'}
+                      </button>
+                    </div>
                   </div>
                   {auth.error && <p role="alert" className="text-sm text-destructive">{auth.error}</p>}
                   <Button type="submit" className="w-full" disabled={!auth.configured || busy}>{busy ? 'Signing in…' : 'Sign in'}</Button>

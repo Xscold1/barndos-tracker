@@ -2,6 +2,7 @@ import { useEffect, useReducer } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { AuthContext } from './authContext.js'
 import { authReducer, initialAuthState } from './authState.js'
+import { signInError } from './signInError.js'
 
 export default function AuthProvider({ children, client = supabase }) {
   const [state, dispatch] = useReducer(authReducer, Boolean(client), initialAuthState)
@@ -54,7 +55,7 @@ export default function AuthProvider({ children, client = supabase }) {
   async function signIn(email, password) {
     if (!client) throw new Error('Sign-in is not configured. Contact the workspace owner.')
     const { data, error } = await client.auth.signInWithPassword({ email: email.trim(), password })
-    if (error || !data.session) throw new Error('Unable to sign in. Check your email and password, or try again shortly.')
+    if (error || !data.session) throw new Error(signInError(error))
     dispatch({ type: 'session', session: data.session })
   }
 

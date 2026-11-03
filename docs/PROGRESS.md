@@ -567,3 +567,8 @@ Removed all five mock Auth users, profiles and their six role entries from the s
 ## Login environment configuration fix - 2026-11-03
 
 Fixed Vite loading only VITE_ variables while the Supabase client and environment files use NEXT_PUBLIC_SUPABASE_ names. vite.config.js now loads that prefix and explicitly exposes only the two validated public Supabase values. No credential values changed. Lint, production build and all six auth tests passed; verified both configured values reach the production bundle without printing them. Existing chunk-size warning remains. Actual password login awaits user verification after restarting Vite.
+
+
+## Login visibility and connection diagnosis - 2026-11-03
+
+Added an accessible Show/Hide password button and distinct sign-in messages for connection failures, invalid credentials, unconfirmed email, rate limits and rejected configuration. Environment validation passes, but a read-only request to the configured Auth settings endpoint failed with DNS ENOTFOUND both inside and outside the sandbox. Correct Project URL is required from the user; no environment values or remote accounts were changed. Lint, build and seven focused auth tests passed; existing bundle-size warning remains. Browser interaction and successful account login await verification.
