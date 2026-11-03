@@ -52,7 +52,7 @@ barndos-tracker/
 └── package.json
 ```
 
-Use environment variables such as `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` (or equivalent public anon key supported by the SDK). **Never** use a service-role secret in `VITE_...` variables or any bundled frontend source.
+Use environment variables such as `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (or equivalent public anon key supported by the SDK). **Never** use a service-role secret in `VITE_...` variables or any bundled frontend source.
 
 ## 3. UI design direction
 

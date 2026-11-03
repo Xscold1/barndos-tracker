@@ -24,7 +24,7 @@ The top bar labels deadlines as **Tennessee time (CT)** and shows the employee n
 ### T04 authentication setup
 
 1. Use a development Supabase project with all migrations applied. Create email/password users through Supabase Auth tooling, then provision their `profiles` and dashboard roles as the database owner. Seed Auth placeholders are not sign-in accounts.
-2. Copy `.env.example` to `.env.local` if you do not already have one. Supply your project's `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` (a publishable or legacy anon key). Never use secret/service-role keys or put them in any `VITE_` variable.
+2. Copy `.env.example` to `.env.local` if you do not already have one. Supply your project's `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (a publishable or legacy anon key). Never use secret/service-role keys or put them in any `VITE_` variable.
 3. Restart Vite. Without configuration, the app shows a disabled sign-in form and never opens protected pages. Invalid/private-key configuration stops Vite before serving/building the app.
 
 See [supabase/README.md](supabase/README.md#t04-employee-access-and-onboarding) for profile/role provisioning, SQL access tests, and the live-login checklist. There is no public signup flow or mock-auth bypass in the app. The SDK persists/refreshes sessions; sign-out applies to this browser. Roles choose a dashboard view and do not restrict project edits or tabs.
