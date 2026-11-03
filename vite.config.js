@@ -6,10 +6,15 @@ import { readSupabaseConfig } from './src/lib/supabaseConfig.js'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, fileURLToPath(new URL('.', import.meta.url)), 'VITE_')
+  const env = loadEnv(mode, fileURLToPath(new URL('.', import.meta.url)), 'NEXT_PUBLIC_SUPABASE_')
   const config = readSupabaseConfig(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)
   if (config.error) throw new Error(config.error)
   return {
+    // Explicitly expose only the validated public Supabase configuration.
+    define: {
+      'import.meta.env.NEXT_PUBLIC_SUPABASE_URL': JSON.stringify(config.url ?? ''),
+      'import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY': JSON.stringify(config.key ?? ''),
+    },
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
