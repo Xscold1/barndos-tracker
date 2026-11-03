@@ -1,4 +1,22 @@
+## Requested UI revisions â€” 2026-11-03
+
+Implemented; awaiting user verification. Only these revisions were made; T15 and T16 have not started.
+
+- Admin/PM navigation shows Dashboard and Projects only, on desktop/mobile. Direct /my-work visits redirect to Dashboard. Admin dashboards use All Team and omit My Work, including accounts with multiple roles. Stale project-return state does not show Back to My Work for admins. Shared editing permissions remain unchanged.
+- Added an accessible theme toggle beside the user's name, with saved browser preference and dark design tokens across the app. Initial theme follows system preference when no choice is saved; explicit choices persist on reload.
+- Activity and worknotes entries scroll after 32rem, with keyboard focus and long-content wrapping. Heading and actions stay outside the scroll area.
+
+Files: App.jsx, AppShell.jsx, DashboardPage.jsx, ProjectDetailPage.jsx, dashboardPreference.js, dashboardView.js, ActivityTimeline.jsx, index.css, main.jsx, auth.test.js, dashboard-view.test.js; added ThemeToggle.jsx.
+
+Verification: lint/build passed (existing bundle-size warning). All 70 tests excluding the pre-existing csv-migration.test.js passed. Full npm test still fails because that file imports missing scripts/migrate-project-list.mjs; unrelated CSV work was left unchanged. Browser verification remains pending: admin/drafter navigation, direct My Work URLs, theme toggle/reload, and long activity scrolling with keyboard/mouse. No database or deployment changes.
+
 # Development progress
+
+## Requested CSV migration (F05)
+
+Added `scripts/migrate-project-list.mjs`, example configuration, three regression tests and `docs/CSV_MIGRATION.md`. The generator preserves legacy metadata and uses existing application RPC signatures in one transaction. It blocks missing/duplicate identifiers, ambiguous statuses and unresolved employee UUIDs.
+
+Verification: 72 tests, lint and build passed (existing bundle-size warning remains). Validation of the actual 41-record CSV correctly blocked SQL generation; private review report: `node_modules/project-list-import.sql.review.json`. No database writes occurred. The documented supabase migrations are absent, so schema/RPC validation and SQL rehearsal remain pending. Identifier/status decisions and verified employee mappings are required. User verification remains pending. Existing DashboardPage.jsx trailing whitespace was reported by diff-check; that user edit was left intact. T15 was not started.
 
 ## Current ticket: T14a â€” Dedicated My Work page
 
@@ -531,3 +549,17 @@
 
 - npm reported six moderate dependency advisories during installation. Their details have not been assessed; no forced dependency upgrades were applied.
 - This section records the T01 handoff. See the current T02 status above for subsequent work.
+
+## Actual CSV seed update — 2026-11-03
+
+Implemented; awaiting user verification. Replaced fictional project data in supabase/seed.sql with 41 CSV projects and 205 work items, retaining the five existing placeholder profiles and six role entries. Added seven confirmed email/password accounts with profiles, identities and requested roles. Temporary password: Barndos123!. Added scripts/generate-project-seed.mjs and docs/CSV_SEED.md documenting email aliases, duplicate/missing project numbers, ambiguous statuses and unconfirmed Takeoffs scope.
+
+Verification: npm.cmd run lint and npm.cmd run build passed (existing chunk-size warning). Seed counts, retained six roles and byte-identical regeneration passed. npm.cmd test: 69 passed, 1 failed because the pre-existing untracked src/tests/csv-migration.test.js imports missing scripts/migrate-project-list.mjs. Full git diff --check also reports pre-existing trailing whitespace at src/pages/DashboardPage.jsx:40; scoped seed diff check passed. No database changes were applied; SQL execution and Supabase password login remain unverified. No PostgreSQL client was found on PATH. Existing unrelated working-tree edits were preserved.
+
+## CSV seed foreign key fix — 2026-11-03
+
+Restored five original Auth users and profiles before the six retained role entries. The generator now defines these records explicitly instead of extracting a potentially incomplete section from its own output. Added src/tests/seed.test.js to verify all 12 users precede their profiles and all 14 role assignments reference earlier profiles. Focused regression test, lint and build passed (existing build chunk-size warning). Regenerated seed; remote database execution remains for user verification. No remote database operations performed.
+
+## Actual accounts only — 2026-11-03
+
+Removed all five mock Auth users, profiles and their six role entries from the seed and generator per user clarification. Seed now includes only the seven requested actual accounts and eight requested role assignments; Emerson has Kitchen and CP roles. All 41 projects and 205 work items remain. Updated CSV_SEED documentation and regression assertions. Focused seed test, lint and build passed (existing chunk-size warning). No hosted database operations were performed; removing mock users already seeded remotely would require separate cleanup.

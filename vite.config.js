@@ -14,5 +14,10 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
     },
+    server: {
+      host: true,          // Exposes Vite to the local network (binds to 0.0.0.0)
+      allowedHosts: true,  // Required since Vite 6 to accept dynamic VS Code tunnel URLs
+      strictPort: true     // Keeps Vite locked to 5173 instead of randomly changing it
+  }
   }
 })

@@ -15,7 +15,8 @@ test('dashboard opens collapsed All Team for PM/no role and the relevant My Work
     assert.equal(view.scope, 'mine')
     assert.equal(view.workstream, stream)
   }
-  assert.equal(read('', [{ role: 'admin_pm' }, ...cp]).workstream, 'cp')
+  assert.equal(read('', [{ role: 'admin_pm' }, ...cp]).workstream, null)
+  assert.equal(read('scope=mine&workstream=bp', [{ role: 'admin_pm' }, ...cp]).scope, 'team')
 })
 
 test('URL selections override preferences without restricting workstreams, and malformed values normalize', () => {

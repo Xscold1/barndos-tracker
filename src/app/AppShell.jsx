@@ -5,12 +5,15 @@ import { navigation } from '@/app/navigation'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/features/auth/useAuth'
+import { hasAdminRole } from '@/features/auth/dashboardPreference'
+import ThemeToggle from '@/components/ThemeToggle'
 
 export default function AppShell() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
   const [signOutError, setSignOutError] = useState('')
-  const { profile, signOut } = useAuth()
+  const { profile, roles, signOut } = useAuth()
+  const visibleNavigation = navigation.filter(item => item.path !== '/my-work' || !hasAdminRole(roles))
   const menuButton = useRef(null)
   const { pathname } = useLocation()
   const currentPage = navigation.find((item) => matchPath({ path: item.path, end: false }, pathname))?.label ?? 'Page not found'
@@ -55,7 +58,7 @@ export default function AppShell() {
         <div id="workspace-navigation" className={cn('flex-col gap-6 px-3 pb-5 md:flex md:h-[calc(100svh-5rem)]', menuOpen ? 'flex' : 'hidden')} onKeyDown={closeMenuOnEscape}>
           <nav aria-label="Main navigation" className="space-y-1">
             <p className="px-3 pt-3 pb-2 text-xs font-medium tracking-wider text-muted-foreground uppercase">Workspace</p>
-            {navigation.map(({ path, label, icon: Icon }) => (
+            {visibleNavigation.map(({ path, label, icon: Icon }) => (
               <NavLink key={path} to={path} onClick={() => setMenuOpen(false)} className={({ isActive }) => cn('flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring', isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground')}>
                 <Icon className="size-4 shrink-0" aria-hidden="true" />
                 {label}
@@ -78,6 +81,7 @@ export default function AppShell() {
           </div>
           <div className="flex items-center gap-3">
             <span className="max-w-48 truncate text-sm font-medium" title={profile.display_name}>{profile.display_name}</span>
+            <ThemeToggle />
             <Button variant="outline" onClick={handleSignOut} disabled={signingOut}>{signingOut ? 'Signing out…' : 'Sign out'}</Button>
           </div>
         </header>

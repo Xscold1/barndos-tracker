@@ -1,4 +1,4 @@
-import { dashboardPreference } from '../auth/dashboardPreference.js'
+import { dashboardPreference, hasAdminRole } from '../auth/dashboardPreference.js'
 import { DASHBOARD_FILTERS, DASHBOARD_WORKSTREAMS } from './createDashboardService.js'
 
 const pageKey = (workstream) => `${workstream}_page`
@@ -6,7 +6,7 @@ const validPage = (value) => /^\d+$/.test(value ?? '') && Number(value) >= 1 && 
 
 export function dashboardViewFromParams(params, roles) {
   const preference = dashboardPreference(roles)
-  const scope = ['team', 'mine'].includes(params.get('scope')) ? params.get('scope') : preference.scope
+  const scope = hasAdminRole(roles) ? 'team' : ['team', 'mine'].includes(params.get('scope')) ? params.get('scope') : preference.scope
   const requested = params.get('workstream')
   const workstream = requested === 'none' ? null : DASHBOARD_WORKSTREAMS.includes(requested) ? requested : preference.workstream
   const filter = DASHBOARD_FILTERS.includes(params.get('filter')) ? params.get('filter') : 'pending'

@@ -6,8 +6,13 @@ const preferences = {
   quotation_takeoffs: { label: 'Takeoffs', scope: 'mine', workstream: 'takeoffs' },
 }
 
+export function hasAdminRole(roles = []) {
+  return roles.some(({ role }) => role === 'admin_pm')
+}
+
 // This module chooses a view only. It is never used to authorize CRUD.
 export function dashboardPreference(roles = []) {
+  if (hasAdminRole(roles)) return preferences.admin_pm
   const supported = roles.filter(({ role }) => preferences[role])
   const chosen = supported.find(({ is_default }) => is_default) ?? supported[0]
   return preferences[chosen?.role] ?? preferences.admin_pm

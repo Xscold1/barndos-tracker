@@ -30,7 +30,8 @@ test('roles choose dashboard preferences, including an explicit default and no-r
   }
   assert.equal(defaultDashboardPath([{ role: 'admin_pm' }]), '/dashboard?scope=team')
   assert.equal(dashboardPreference([]).scope, 'team')
-  assert.equal(dashboardPreference([{ role: 'admin_pm' }, { role: 'cp_drafter', is_default: true }]).workstream, 'cp')
+  assert.equal(dashboardPreference([{ role: 'admin_pm' }, { role: 'cp_drafter', is_default: true }]).scope, 'team')
+  assert.equal(dashboardPreference([{ role: 'bp_drafter' }, { role: 'cp_drafter', is_default: true }]).workstream, 'cp')
 })
 
 test('post-login navigation preserves internal deep links and rejects external/login redirects', () => {

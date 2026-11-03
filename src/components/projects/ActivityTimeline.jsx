@@ -19,7 +19,7 @@ export default function ActivityTimeline({ projectId, revision }) {
       {loading ? <p role="status" className="mt-5 text-sm text-muted-foreground">Loading activity…</p>
         : error ? <div role="alert" className="mt-5 text-sm text-destructive">{error}<Button variant="outline" className="mt-3 block" onClick={reload}>Retry activity</Button></div>
           : !events.length ? <p className="mt-5 text-sm text-muted-foreground">No activity recorded yet. Add a worknote or save a project change.</p>
-            : <ol className="mt-5 divide-y" aria-label="Activity entries">
+            : <ol className="mt-5 max-h-[32rem] overflow-y-auto overscroll-contain divide-y pr-3 [overflow-wrap:anywhere] focus-visible:outline-2 focus-visible:outline-ring" aria-label="Activity entries" tabIndex={0}>
               {events.map((event) => (
                 <li key={event.id} className="min-w-0 py-4 first:pt-0" data-activity-id={event.id}>
                   <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm"><span className="font-semibold">{activityTitle(event)}</span><span className="rounded bg-muted px-2 py-0.5 text-xs">{activityScope(event)}</span><span className="text-muted-foreground">by {event.actor_name ?? 'Employee'}</span></div>

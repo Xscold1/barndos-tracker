@@ -9,7 +9,12 @@ import MyWorkPage from '@/pages/MyWorkPage'
 import AuthProvider from '@/features/auth/AuthProvider'
 import RequireEmployee from '@/features/auth/RequireEmployee'
 import { useAuth } from '@/features/auth/useAuth'
-import { defaultDashboardPath } from '@/features/auth/dashboardPreference'
+import { defaultDashboardPath, hasAdminRole } from '@/features/auth/dashboardPreference'
+
+function MyWorkRoute() {
+  const { roles } = useAuth()
+  return hasAdminRole(roles) ? <Navigate to="/dashboard" replace /> : <MyWorkPage />
+}
 
 function DefaultDashboard() {
   const { roles } = useAuth()
@@ -26,7 +31,7 @@ export function AppRoutes() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
-          <Route path="/my-work" element={<MyWorkPage />} />
+          <Route path="/my-work" element={<MyWorkRoute />} />
           <Route
             path="*"
             element={

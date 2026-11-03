@@ -14,11 +14,14 @@ import ActivityTimeline from '@/components/projects/ActivityTimeline'
 import ProjectWorkflowSummary from '@/components/projects/ProjectWorkflowSummary'
 import { useRevisionData } from '@/features/revisions/useRevisionData'
 import { myWorkReturnPath } from '@/features/my-work/myWorkQuery'
+import { useAuth } from '@/features/auth/useAuth'
+import { hasAdminRole } from '@/features/auth/dashboardPreference'
 
 export default function ProjectDetailPage() {
   const { projectId } = useParams()
   const { search, state } = useLocation()
-  const myWorkReturn = myWorkReturnPath(state?.myWorkReturn)
+  const { roles } = useAuth()
+  const myWorkReturn = hasAdminRole(roles) ? null : myWorkReturnPath(state?.myWorkReturn)
   const { data: project, loading, error, reload, companyToday, clockError, refreshCompanyDate } = useProjectData(projectId)
   const [dialog, setDialog] = useState(null)
   const [notice, setNotice] = useState(null)
